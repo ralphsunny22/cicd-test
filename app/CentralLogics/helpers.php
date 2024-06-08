@@ -4,6 +4,7 @@ namespace App\CentralLogics;
 
 class Helpers
 {
+    //
     public static function error_processor($validator)
     {
         $err_keeper = [];
