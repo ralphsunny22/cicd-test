@@ -1,5 +1,7 @@
-on: push
-name: 🚀 Deploy website on push
+on: push:
+  branches: [ 'main' ]
+
+name: 🚀 Deployment
 jobs:
   web-deploy:
     name: 🎉 Deploy
@@ -7,6 +9,35 @@ jobs:
     steps:
     - name: 🚚 Get latest code
       uses: actions/checkout@v2.3.2
+
+    - name: Cache composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-
+
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+    - name: Config Clearing
+      run: php artisan config:clear
+
+    - name: Cache Clearing
+      run: php artisan cache:clear
+
+    - name: Generate App Key
+      run: php artisan key:generate
+
+    - name: Generate storage link
+      run: php artisan storage:link
+
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
     
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
